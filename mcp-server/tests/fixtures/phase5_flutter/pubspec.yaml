@@ -1,0 +1,13 @@
+name: phase5_flutter_fixture
+description: Disposable DesignForge Phase 5.1 visual QA fixture.
+publish_to: none
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true

@@ -1,0 +1,5 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { DesignTokens } from '../lib/design-tokens.js';
+import { jsonResult, platformSchema } from '../lib/validation.js';
+const recommendations = { mobile: ['SafeArea and keyboard insets', 'Compact navigation', 'Large touch targets', 'Text scaling'], tablet: ['Adaptive split views', 'Orientation changes', 'Touch and keyboard support'], desktop: ['Keyboard and pointer input', 'Resizable master-detail layouts', 'Dense but readable data tables', 'Focus indicators'], web: ['Browser history', 'Semantic HTML or accessible widgets', 'Responsive max widths', 'Pointer and keyboard input'] } as const;
+export function registerResponsiveGuidance(server: McpServer, tokens: DesignTokens) { server.tool('designforge_responsive_guidance', 'Get responsive layout recommendations', { platform: platformSchema }, async ({ platform }) => jsonResult({ platform, breakpoints: tokens.breakpoints, recommendations: recommendations[platform] })); }

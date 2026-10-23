@@ -1,0 +1,2 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'; import { z } from 'zod'; import { jsonResult } from '../lib/validation.js'; import { scanProject } from '../scanner/project-discovery.js'; import { auditResponsive } from '../scanner/analyzers.js';
+export function registerAuditResponsive(server: McpServer) { server.tool('designforge_audit_responsive','Detect static responsive and accessibility risks',{projectPath:z.string().trim().min(1).max(4096)},async ({projectPath})=>jsonResult(auditResponsive(await scanProject(projectPath)))); }

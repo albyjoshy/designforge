@@ -1,0 +1,18 @@
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { artifactRoot } from './core.js';
+import { canonicalize } from './canonical.js';
+
+export type ApprovalRequest = { proposalId: string; patchHash: string; projectRoot: string; files: string[]; snapshotHash: string; expiresAt: string; diffSummary: string; impactSummary: string };
+export type TrustedApproval = ApprovalRequest & { approvalId: string; issuerId: string; issuedAt: string; signature: string; usedAt?: string; revokedAt?: string };
+const statePath = join(artifactRoot, 'approval-state.json');
+const secret = () => process.env.DESIGNFORGE_APPROVAL_SECRET;
+const issuer = () => process.env.DESIGNFORGE_APPROVAL_ISSUER_ID;
+function body(a: ApprovalRequest & { approvalId: string; issuerId: string; issuedAt: string }) { return { approvalId:a.approvalId, issuerId:a.issuerId, issuedAt:a.issuedAt, proposalId:a.proposalId, patchHash:a.patchHash, projectRoot:a.projectRoot, files:[...a.files].sort(), snapshotHash:a.snapshotHash, expiresAt:a.expiresAt, diffSummary:a.diffSummary, impactSummary:a.impactSummary }; }
+async function state(): Promise<{used:string[];revoked:string[]}> { try{return JSON.parse(await readFile(statePath,'utf8'));}catch{return {used:[],revoked:[]};} }
+async function saveState(s:{used:string[];revoked:string[]}) { await mkdir(artifactRoot,{recursive:true}); await writeFile(statePath,JSON.stringify(s),'utf8'); }
+export async function issueWithHumanConfirmation(request: ApprovalRequest, confirm: (review: ApprovalRequest) => Promise<boolean>): Promise<TrustedApproval> { const s=secret(), id=issuer(); if(!s||!id)throw new Error('Trusted approval issuer is disabled'); if(!await confirm(request))throw new Error('Human confirmation was not affirmative'); const approval={...request,approvalId:randomUUID(),issuerId:id,issuedAt:new Date().toISOString()}; const signature=createHmac('sha256',s).update(canonicalize(body(approval))).digest('hex'); return {...approval,signature}; }
+export async function validateTrustedApproval(approval: TrustedApproval, expected: ApprovalRequest) { const s=secret(), id=issuer(); if(!s||!id)throw new Error('Trusted approval issuer is disabled'); const st=await state(); if(approval.issuerId!==id)throw new Error('Approval issuer mismatch'); if(approval.usedAt||st.used.includes(approval.approvalId))throw new Error('Approval replay rejected'); if(approval.revokedAt||st.revoked.includes(approval.approvalId))throw new Error('Approval revoked'); if(Date.parse(approval.expiresAt)<=Date.now())throw new Error('Approval expired'); const bound={proposalId:approval.proposalId,patchHash:approval.patchHash,projectRoot:approval.projectRoot,files:[...approval.files].sort(),snapshotHash:approval.snapshotHash,expiresAt:approval.expiresAt,diffSummary:approval.diffSummary,impactSummary:approval.impactSummary}; if(canonicalize(bound)!==canonicalize({...expected,files:[...expected.files].sort()}))throw new Error('Approval binding mismatch'); const actual=Buffer.from(approval.signature,'hex'), wanted=Buffer.from(createHmac('sha256',s).update(canonicalize(body(approval))).digest('hex'),'hex'); if(actual.length!==wanted.length||!timingSafeEqual(actual,wanted))throw new Error('Approval signature invalid'); return approval; }
+export async function consumeApproval(id:string){const s=await state();if(s.used.includes(id))throw new Error('Approval replay rejected');s.used.push(id);await saveState(s);}
+export async function revokeApproval(id:string){const s=await state();if(!s.revoked.includes(id))s.revoked.push(id);await saveState(s);}

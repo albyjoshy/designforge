@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.log
+.codex-flutter-home/
+.designforge-artifacts/
+.flutter_tool_state
+**/.dart_tool/
+**/build/
+**/test/failures/

@@ -1,0 +1,15 @@
+# Design rules
+- Prioritize task completion, legibility, discoverability, consistency and accessibility over visual novelty.
+- Minimum touch target: aim for at least 48x48 logical pixels for Flutter Material interactions; honor platform-specific guidelines when different.
+- Color contrast: WCAG AA baseline 4.5:1 normal text, 3:1 large text and meaningful non-text UI where applicable. Verify rather than assume.
+- Never communicate state with color alone; provide labels, icons, and semantics.
+- Support keyboard navigation, visible focus, screen readers, text scaling, reduced motion, and RTL when applicable.
+- Treat widths as layout signals, not device labels. Suggested initial breakpoints: compact <600, medium 600-839, expanded >=840 logical px; validate against content and platform.
+- Navigation: compact bottom navigation where appropriate; expanded rail/sidebar when information architecture supports it.
+- Use 4/8-point spacing rhythm with documented exceptions.
+- Every interactive screen must specify loading, empty, error, success and offline states as applicable.
+- Prefer semantic color roles and typography styles; avoid fixed-height text containers that clip on scaling.
+- Desktop: keyboard shortcuts, pointer hover, dense tables when useful, resize behavior, scroll and focus order.
+- Web: responsive layout, browser back behavior, semantics, link behavior and performance.
+- Keep motion subtle and purposeful; honor reduced-motion preference.
+- Screenshots and visual tests are required before declaring pixel-level quality.

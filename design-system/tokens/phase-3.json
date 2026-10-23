@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "themes": {
+    "light": { "background": "#F8FAFC", "surface": "#FFFFFF", "text": "#142238", "textMuted": "#475569", "primary": "#1B3C6E", "onPrimary": "#FFFFFF", "secondary": "#16A34A", "accent": "#F07826", "error": "#B42318", "success": "#15803D", "outline": "#CBD5E1" },
+    "dark": { "background": "#0F172A", "surface": "#172033", "text": "#F8FAFC", "textMuted": "#CBD5E1", "primary": "#9CC2FF", "onPrimary": "#0B1B36", "secondary": "#86EFAC", "accent": "#FDBA74", "error": "#FDA29B", "success": "#86EFAC", "outline": "#64748B" }
+  },
+  "typography": { "body": 16, "bodySmall": 14, "label": 14, "title": 22, "headline": 30, "display": 40, "lineHeight": 1.4 },
+  "density": { "comfortable": 1, "compact": 0.875, "spacious": 1.125 },
+  "spacing": { "xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32, "xxl": 48 },
+  "radius": { "sm": 8, "md": 12, "lg": 20, "pill": 999 },
+  "elevation": { "none": 0, "raised": 2, "overlay": 8, "dialog": 24 },
+  "breakpoints": { "compactMax": 599, "mediumMax": 839, "expandedMin": 840 },
+  "contrast": { "normalTextMinimum": 4.5, "largeTextMinimum": 3, "nonTextMinimum": 3 },
+  "migration": "Phase 2 tokens remain at design-system/tokens.json; consumers may migrate to this versioned schema incrementally."
+}

@@ -1,0 +1,2 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'; import { z } from 'zod'; import { jsonResult } from '../lib/validation.js'; import { scanProject } from '../scanner/project-discovery.js'; import { extractTheme } from '../scanner/analyzers.js';
+export function registerExtractTheme(server: McpServer) { server.tool('designforge_extract_theme','Identify Flutter theme and token configuration',{projectPath:z.string().trim().min(1).max(4096)},async ({projectPath})=>jsonResult(extractTheme(await scanProject(projectPath)))); }

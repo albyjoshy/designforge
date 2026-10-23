@@ -1,0 +1,2 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'; import { z } from 'zod'; import { jsonResult } from '../lib/validation.js'; import { scanProject } from '../scanner/project-discovery.js'; import { discoverScreens } from '../scanner/analyzers.js';
+export function registerDiscoverScreens(server: McpServer) { server.tool('designforge_discover_screens','Identify Flutter screens, widgets and entry points',{projectPath:z.string().trim().min(1).max(4096)},async ({projectPath})=>jsonResult(discoverScreens(await scanProject(projectPath)))); }

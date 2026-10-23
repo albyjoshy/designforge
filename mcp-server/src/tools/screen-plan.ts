@@ -1,0 +1,3 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { jsonResult, screenPlanSchema } from '../lib/validation.js';
+export function registerScreenPlan(server: McpServer) { server.tool('designforge_screen_plan', 'Generate an implementation planning template for a screen', screenPlanSchema, async ({ screenName, platform, primaryTask }) => jsonResult({ screenName, platform, primaryTask, sections: ['User goals', 'Information hierarchy', 'Navigation', 'Reusable components', 'Responsive behavior', 'Accessibility', 'Loading/empty/error/offline states', 'Acceptance criteria'], note: 'This is a planning template, not a validated design or implementation.' })); }

@@ -1,0 +1,2 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'; import { z } from 'zod'; import { jsonResult } from '../lib/validation.js'; import { scanProject } from '../scanner/project-discovery.js'; import { analyzeRoutes } from '../scanner/analyzers.js';
+export function registerAnalyzeRoutes(server: McpServer) { server.tool('designforge_analyze_routes','Extract Flutter route definitions and screen relationships',{projectPath:z.string().trim().min(1).max(4096)},async ({projectPath})=>jsonResult(analyzeRoutes(await scanProject(projectPath)))); }

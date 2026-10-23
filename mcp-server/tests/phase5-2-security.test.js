@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { mkdtemp, mkdir, writeFile, readFile, symlink, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { issueWithHumanConfirmation, validateTrustedApproval, consumeApproval, revokeApproval } from '../dist/phase5/approval-issuer.js';
+import { writeTransaction, rollbackTransaction } from '../dist/phase5/transaction.js';
+import { sha256 } from '../dist/phase5/core.js';
+
+const request = root => ({proposalId:'proposal-fixture',patchHash:'patch-hash',projectRoot:root,files:['lib/home.dart'],snapshotHash:'snapshot-hash',expiresAt:new Date(Date.now()+60000).toISOString(),diffSummary:'presentation-only change',impactSummary:'no protected files'});
+
+test('trusted approval requires explicit confirmation and rejects forged, expired and revoked artifacts', async () => {
+  const root=await mkdtemp(join(tmpdir(),'designforge-approval-')); const oldSecret=process.env.DESIGNFORGE_APPROVAL_SECRET; const oldIssuer=process.env.DESIGNFORGE_APPROVAL_ISSUER_ID; process.env.DESIGNFORGE_APPROVAL_SECRET='fixture-secret'; process.env.DESIGNFORGE_APPROVAL_ISSUER_ID='fixture-issuer'; const req=request(root);
+  await assert.rejects(()=>issueWithHumanConfirmation(req,async()=>false),/affirmative/); const approval=await issueWithHumanConfirmation(req,async review=>review.patchHash===req.patchHash); assert.equal((await validateTrustedApproval(approval,req)).approvalId,approval.approvalId); await consumeApproval(approval.approvalId); await assert.rejects(()=>validateTrustedApproval(approval,req),/replay/); await revokeApproval('revoked-id'); const forged={...approval,signature:'00'.repeat(32),approvalId:'forged'}; await assert.rejects(()=>validateTrustedApproval(forged,req),/signature|binding/); await assert.rejects(()=>validateTrustedApproval(approval,{...req,projectRoot:'other-project'}),/binding|replay/); await assert.rejects(()=>validateTrustedApproval(approval,{...req,files:['lib/other.dart']}),/binding|replay/); const expired={...approval,approvalId:'expired',expiresAt:new Date(Date.now()-1000).toISOString()}; await assert.rejects(()=>validateTrustedApproval(expired,req),/expired|signature/); if(oldSecret===undefined)delete process.env.DESIGNFORGE_APPROVAL_SECRET;else process.env.DESIGNFORGE_APPROVAL_SECRET=oldSecret;if(oldIssuer===undefined)delete process.env.DESIGNFORGE_APPROVAL_ISSUER_ID;else process.env.DESIGNFORGE_APPROVAL_ISSUER_ID=oldIssuer; await rm(root,{recursive:true,force:true});
+});
+
+test('transaction rollback restores only unchanged transaction files and reports conflicts', async () => {const root=await mkdtemp(join(tmpdir(),'designforge-tx-'));await mkdir(join(root,'lib'));const f=join(root,'lib/home.dart');await writeFile(f,'before');const tx=await writeTransaction(root,[{relativePath:'lib/home.dart',content:'after',expectedHash:sha256('before')}],join(root,'backup'));assert.equal(await readFile(f,'utf8'),'after');const rolled=await rollbackTransaction(tx);assert.equal(rolled.status,'ROLLED_BACK');assert.equal(await readFile(f,'utf8'),'before');const tx2=await writeTransaction(root,[{relativePath:'lib/home.dart',content:'after2',expectedHash:sha256('before')}],join(root,'backup2'));await writeFile(f,'unrelated-change');const conflict=await rollbackTransaction(tx2);assert.equal(conflict.status,'CONFLICT');assert.equal(await readFile(f,'utf8'),'unrelated-change');await rm(root,{recursive:true,force:true});});
+
+test('transaction rejects traversal and protected files', async () => {const root=await mkdtemp(join(tmpdir(),'designforge-boundary-'));await mkdir(join(root,'lib'));await writeFile(join(root,'lib/home.dart'),'before');await assert.rejects(()=>writeTransaction(root,[{relativePath:'../outside.dart',content:'x',expectedHash:sha256('before')}],join(root,'backup')),/unauthorized|protected/i);await assert.rejects(()=>writeTransaction(root,[{relativePath:'lib/api_service.dart',content:'x',expectedHash:sha256('before')}],join(root,'backup')),/protected/i);await rm(root,{recursive:true,force:true});});
+

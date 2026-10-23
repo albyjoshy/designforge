@@ -1,0 +1,3 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { jsonResult, platformSchema } from '../lib/validation.js';
+export function registerAuditChecklist(server: McpServer) { server.tool('designforge_audit_checklist', 'Generate a UI quality checklist', { platform: platformSchema }, async ({ platform }) => jsonResult({ platform, checks: ['Contrast and semantic color', 'Text scaling and overflow', 'Touch/pointer targets', 'Keyboard and focus order', 'Screen reader labels', 'Loading/empty/error states', 'Responsive widths', 'Localization/RTL where applicable', 'Performance', 'Visual regression evidence'], note: 'Check items manually or with host tooling; no automated audit has been performed.' })); }

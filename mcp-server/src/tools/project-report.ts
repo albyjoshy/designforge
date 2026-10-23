@@ -1,0 +1,2 @@
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'; import { z } from 'zod'; import { jsonResult } from '../lib/validation.js'; import { scanProject } from '../scanner/project-discovery.js'; import { report } from '../scanner/analyzers.js';
+export function registerProjectReport(server: McpServer) { server.tool('designforge_project_report','Combine Flutter scan results into an evidence-based UI/UX report',{projectPath:z.string().trim().min(1).max(4096)},async ({projectPath})=>jsonResult(report(await scanProject(projectPath)))); }
