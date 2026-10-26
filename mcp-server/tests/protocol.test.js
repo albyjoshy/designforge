@@ -17,7 +17,7 @@ async function withClient(callback) {
   }
 }
 
-test('lists and invokes all twenty-one DesignForge MCP tools', async () => {
+test('lists and invokes all twenty-two DesignForge MCP tools', async () => {
   await withClient(async (client) => {
     const listed = await client.listTools();
     const names = listed.tools.map((tool) => tool.name).sort();
@@ -37,6 +37,7 @@ test('lists and invokes all twenty-one DesignForge MCP tools', async () => {
       'designforge_get_tokens',
       'designforge_preview_ui',
       'designforge_project_report',
+      'designforge_reference_search',
       'designforge_responsive_guidance',
       'designforge_responsive_test',
       'designforge_scan_project',
@@ -58,6 +59,9 @@ test('lists and invokes all twenty-one DesignForge MCP tools', async () => {
 
     const guidance = await client.callTool({ name: 'designforge_responsive_guidance', arguments: { platform: 'desktop' } });
     assert.match(guidance.content[0].text, /desktop|Keyboard/i);
+
+    const references = await client.callTool({ name: 'designforge_reference_search', arguments: { query: 'finance dashboard', sources: ['dribbble'], limit: 3 } });
+    assert.match(references.content[0].text, /BLOCKED|results/);
 
     const evaluation = await client.callTool({ name: 'designforge_evaluate_screen', arguments: {
       screenName: 'Checkout', platform: 'mobile', interactiveElementCount: 2, minTouchTarget: 48,

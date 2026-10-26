@@ -1,0 +1,13 @@
+{
+  "name": "DesignForge AI",
+  "id": "designforge-ai",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"],
+    "devAllowedDomains": ["http://127.0.0.1:8787"],
+    "reasoning": "Development access to the local DesignForge reference gateway."
+  }
+}

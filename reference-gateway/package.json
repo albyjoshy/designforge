@@ -1,0 +1,6 @@
+{
+  "name": "designforge-reference-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node src/server.mjs", "test": "node --test" }
+}

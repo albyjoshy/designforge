@@ -1,0 +1,10 @@
+{
+  "name": "designforge-ai-figma-plugin",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-ui.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

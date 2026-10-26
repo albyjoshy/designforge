@@ -1,0 +1,26 @@
+name: Reference gateway validation
+
+on:
+  push:
+    paths:
+      - 'reference-gateway/**'
+      - 'figma-plugin/**'
+      - '.github/workflows/reference-gateway.yml'
+  pull_request:
+    paths:
+      - 'reference-gateway/**'
+      - 'figma-plugin/**'
+      - '.github/workflows/reference-gateway.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate gateway syntax
+        run: node --check reference-gateway/src/server.mjs && node --check reference-gateway/src/token-store.mjs
+      - name: Validate Figma plugin TypeScript
+        run: npx --yes typescript@5.9.3 --project figma-plugin/tsconfig.json

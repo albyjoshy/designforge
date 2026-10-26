@@ -1,0 +1,54 @@
+<style>
+  body { font: 13px Inter, sans-serif; color: #142238; margin: 20px; }
+  h2 { margin: 0 0 6px; } p { color: #475569; line-height: 1.4; }
+  label { display:block; margin: 12px 0 5px; font-weight: 600; }
+  input, textarea { box-sizing: border-box; width:100%; border:1px solid #CBD5E1; border-radius:8px; padding:9px; font: inherit; }
+  textarea { min-height: 60px; resize: vertical; }
+  button { margin-top:16px; width:100%; border:0; border-radius:8px; padding:11px; background:#1B3C6E; color:white; font-weight:600; cursor:pointer; }
+  .note { font-size:11px; }
+</style>
+<h2>DesignForge AI</h2>
+<p>Describe the screen and generate an editable, original concept using DesignForge tokens.</p>
+<label>Reference search query</label><input id="query" placeholder="e.g. calm finance dashboard" />
+<label>Reference source</label><select id="source" style="width:100%;padding:9px;border:1px solid #CBD5E1;border-radius:8px"><option>dribbble</option><option>pinterest</option><option>behance</option></select>
+<label>Gateway URL</label><input id="gateway" value="http://127.0.0.1:8787" />
+<label>Gateway token</label><input id="token" value="local-development-token" type="password" />
+<button id="connect" style="background:#F07826">Connect Pinterest</button>
+<p id="status" class="note">Pinterest status: unknown</p>
+<button id="references" style="background:#16A34A">Create inspiration board</button>
+<label>Product</label><input id="product" placeholder="e.g. Fitness coach" />
+<label>Audience</label><input id="audience" placeholder="e.g. Busy beginners" />
+<label>Screen</label><input id="screen" placeholder="e.g. Dashboard" />
+<label>Primary goal</label><textarea id="goal" placeholder="What should the user accomplish?"></textarea>
+<p class="note">DesignForge analyzes patterns and creates original work. It does not copy external designs or scrape websites.</p>
+<button id="generate">Generate concept frame</button>
+<button id="cancel" style="background:#EEF2F6;color:#142238">Cancel</button>
+<script>
+  const value = id => document.getElementById(id).value.trim();
+  document.getElementById('generate').onclick = () => parent.postMessage({ pluginMessage: { type: 'generate', brief: { product:value('product'), audience:value('audience'), screen:value('screen'), goal:value('goal') } } }, '*');
+  document.getElementById('references').onclick = async () => {
+    const button = document.getElementById('references'); button.disabled = true; button.textContent = 'Searching…';
+    try {
+      const response = await fetch(value('gateway') + '/api/design-references', { method:'POST', headers:{'content-type':'application/json','authorization':'Bearer ' + value('token')}, body:JSON.stringify({ query:value('query'), sources:[document.getElementById('source').value], limit:3 }) });
+      if (!response.ok) throw new Error('Gateway returned ' + response.status);
+      const data = await response.json();
+      parent.postMessage({ pluginMessage: { type:'reference-board', query:value('query'), source:document.getElementById('source').value, references:data.results } }, '*');
+    } catch (error) { button.textContent = 'Search failed — start the gateway'; setTimeout(() => button.textContent = 'Create inspiration board', 2500); }
+    button.disabled = false;
+  };
+  document.getElementById('connect').onclick = async () => {
+    const url = value('gateway') + '/auth/pinterest/start';
+    window.open(url, '_blank');
+    document.getElementById('connect').textContent = 'Approve in browser, then search';
+  };
+  async function checkStatus() {
+    try {
+      const response = await fetch(value('gateway') + '/api/pinterest/status', { headers:{ authorization:'Bearer ' + value('token') } });
+      const data = await response.json(); document.getElementById('status').textContent = data.connected ? 'Pinterest status: connected' : 'Pinterest status: not connected';
+    } catch { document.getElementById('status').textContent = 'Pinterest status: gateway unavailable'; }
+  }
+  document.getElementById('gateway').addEventListener('change', checkStatus);
+  document.getElementById('token').addEventListener('change', checkStatus);
+  checkStatus();
+  document.getElementById('cancel').onclick = () => parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+</script>

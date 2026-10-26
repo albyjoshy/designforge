@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: designforge-reference-gateway
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DESIGNFORGE_GATEWAY_TOKEN
+        sync: false
+      - key: DESIGNFORGE_TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: PINTEREST_CLIENT_ID
+        sync: false
+      - key: PINTEREST_CLIENT_SECRET
+        sync: false
+      - key: PINTEREST_REDIRECT_URI
+        sync: false
